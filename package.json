@@ -19,6 +19,7 @@
         "@sendgrid/mail": "^7.2.1",
         "bcryptjs": "^2.4.3",
         "express": "^4.17.1",
+        "jest": "^26.2.2",
         "jsonwebtoken": "^8.5.1",
         "mongodb": "^3.5.9",
         "mongoose": "^5.9.21",
