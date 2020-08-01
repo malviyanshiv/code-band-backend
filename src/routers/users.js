@@ -1,7 +1,6 @@
 import express from "express";
 import multer from "multer";
 import sharp from "sharp";
-import { sendWelcomeEmail, sendCancelationEmail } from "../emails/account";
 import Users from "../models/Users";
 import PublicLists from "../models/PublicLists";
 import PrivateLists from "../models/PrivateLists";
