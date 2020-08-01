@@ -41,7 +41,9 @@ This is a simple REST API developed using node and express with javascript.
     JWT_SECRET=thisislocalkey
     ```
 2. Run the server in dev mode
-`npm run dev`
+    ```
+    npm run dev
+    ```
   <!-- [END getstarted] -->
 
 ## Resources
