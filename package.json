@@ -10,7 +10,8 @@
         "build": "babel src -d dist"
     },
     "jest": {
-        "testEnvironment": "node"
+        "testEnvironment": "node",
+        "collectCoverage": true
     },
     "keywords": [],
     "author": "",
@@ -32,6 +33,7 @@
         "@babel/core": "^7.10.4",
         "@babel/node": "^7.10.4",
         "@babel/plugin-transform-modules-commonjs": "^7.10.4",
+        "codecov": "^3.7.2",
         "env-cmd": "^10.1.0",
         "nodemon": "^2.0.4",
         "npx": "^10.2.2"
