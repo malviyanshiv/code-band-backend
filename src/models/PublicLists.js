@@ -46,6 +46,10 @@ const listSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        commentCount: {
+            type: Number,
+            default: 0,
+        },
         reads: {
             type: Number,
             default: 0,

@@ -3,6 +3,7 @@ import PublicLists from "../models/PublicLists";
 import Likes from "../models/Likes";
 import Bookmarks from "../models/Bookmarks";
 import authenticate from "../middleware/auth";
+import Comments from "../models/Comments";
 
 const router = new express.Router();
 
@@ -239,6 +240,67 @@ router.delete(
         }
     }
 );
+
+router.post(
+    "/api/public-lists/:id/comments",
+    authenticate,
+    async (req, res) => {
+        try {
+            const list = await PublicLists.findById(req.params.id);
+            if (list === null) {
+                return res.status(404).send();
+            }
+
+            const body = req.body.body ? req.body.body.trim() : "";
+            if (body.length === 0) {
+                return res.status(400).send({
+                    error: "body is required",
+                });
+            }
+            let comment = new Comments({
+                listID: req.params.id,
+                userID: req.user._id,
+                body,
+            });
+
+            await comment.save();
+
+            comment = await Comments.findById(comment._id).populate({
+                path: "userID",
+                select: "username",
+            });
+            return res.send(comment);
+        } catch (err) {
+            console.log(
+                `Error while saving a comment for ${req.params.id}`,
+                err
+            );
+            return res.status(500).send();
+        }
+    }
+);
+
+router.get("/api/public-lists/:id/comments", async (req, res) => {
+    try {
+        const list = await PublicLists.findById(req.params.id);
+        if (list === null) {
+            return res.status(404).send();
+        }
+        const comments = await Comments.find({ listID: list._id })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: "userID",
+                select: "username",
+            });
+        return res.send(comments);
+    } catch (err) {
+        console.log(
+            `Error occurred while reading comments ${req.params.id}`,
+            err
+        );
+        return res.status(500).send();
+    }
+});
 
 router.get("/api/public-lists/:id/likes", async (req, res) => {
     try {
