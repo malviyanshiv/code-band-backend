@@ -2,7 +2,7 @@
 
 <!-- [START badges] -->
 
-[![Build Status](https://travis-ci.com/malviyanshiv/code-band-backend.svg?branch=master)](https://travis-ci.com/malviyanshiv/code-band-backend) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Build Status](https://travis-ci.com/malviyanshiv/code-band-backend.svg?branch=master)](https://travis-ci.com/malviyanshiv/code-band-backend) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![codecov](https://codecov.io/gh/malviyanshiv/code-band-backend/branch/master/graph/badge.svg)](https://codecov.io/gh/malviyanshiv/code-band-backend)
 
 <!-- [END badges] -->
 
@@ -44,7 +44,7 @@ This is a simple REST API developed using node and express with javascript.
     ```
     npm run dev
     ```
-  <!-- [END getstarted] -->
+    <!-- [END getstarted] -->
 
 ## Resources
 
