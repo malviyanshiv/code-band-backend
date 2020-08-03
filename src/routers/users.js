@@ -51,11 +51,9 @@ router.patch(
         if (!updateValid) {
             return res.status(422).send({
                 success: false,
-                errors: [
-                    {
-                        general: "some updates are not allowed",
-                    },
-                ],
+                errors: {
+                    general: "some updates are not allowed",
+                },
             });
         }
         try {
