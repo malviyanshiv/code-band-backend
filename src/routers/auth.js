@@ -29,7 +29,13 @@ router.post(
                     },
                 });
             }
-            return res.status(500).send(err);
+            return res.status(500).send({
+                success: false,
+                message: "server error occurred",
+                error: {
+                    general: err.message,
+                },
+            });
         }
     }
 );
