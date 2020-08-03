@@ -6,44 +6,69 @@ import PublicLists from "../models/PublicLists";
 import PrivateLists from "../models/PrivateLists";
 import authenticate from "../middleware/auth";
 
+import {
+    userValidationRules,
+    updateUserValidationRules,
+} from "../utils/validators/user";
+import { validate } from "../utils/validators/validator";
+
 const router = new express.Router();
 
-router.post("/api/users", async (req, res) => {
+router.post("/api/users", userValidationRules(), validate, async (req, res) => {
     try {
         const user = new Users({
             ...req.body,
-            isVerified: true, // to be change later
+            isVerified: true,
         });
         await user.save();
         const token = await user.generateAuthToken();
-        //sendWelcomeEmail(user.email, user.username);
-        return res.status(201).send({ user: user.toClient(), token });
+        return res
+            .status(201)
+            .send({ success: true, user: user.toClient(), token });
     } catch (err) {
         console.log("Error occurred while creating a new user", err);
         res.status(500).send({ error: err.message });
     }
 });
 
-// Update User
-router.patch("/api/users/", authenticate, async (req, res) => {
-    const updates = Object.keys(req.body);
-    const allowedUpdates = ["password", "name"];
-    const updateValid = updates.every((update) =>
-        allowedUpdates.includes(update)
-    );
-    if (!updateValid) {
-        return res.status(422).send();
+router.patch(
+    "/api/users/",
+    authenticate,
+    updateUserValidationRules(),
+    validate,
+    async (req, res) => {
+        const updates = Object.keys(req.body);
+        const allowedUpdates = [
+            "password",
+            "name",
+            "bio",
+            "location",
+            "website",
+        ];
+        const updateValid = updates.every((update) =>
+            allowedUpdates.includes(update)
+        );
+        if (!updateValid) {
+            return res.status(422).send({
+                success: false,
+                errors: [
+                    {
+                        general: "some updates are not allowed",
+                    },
+                ],
+            });
+        }
+        try {
+            const user = await Users.findById(req.user._id).select("+password");
+            updates.forEach((update) => (user[update] = req.body[update]));
+            await user.save();
+            return res.send(user.toClient());
+        } catch (err) {
+            console.log("Error occurred while updating the user", err);
+            res.status(500).send({ error: err.message });
+        }
     }
-    try {
-        const user = await Users.findById(req.user._id).select("+password");
-        updates.forEach((update) => (user[update] = req.body[update]));
-        await user.save();
-        return res.send(user.toClient());
-    } catch (err) {
-        console.log("Error occurred while updating the user", err);
-        res.status(500).send({ error: err.message });
-    }
-});
+);
 
 router.get("/api/users/:username", async (req, res) => {
     try {

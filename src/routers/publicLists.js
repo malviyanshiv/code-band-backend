@@ -5,6 +5,15 @@ import Bookmarks from "../models/Bookmarks";
 import authenticate from "../middleware/auth";
 import Comments from "../models/Comments";
 
+import {
+    createListValidationRules,
+    updateListValidationRules,
+    listItemValidationRules,
+    listItemUpdateValidationRules,
+    commentValidationRules,
+} from "../utils/validators/list";
+import { validate } from "../utils/validators/validator";
+
 const router = new express.Router();
 
 router.get("/api/public-lists", async (req, res) => {
@@ -35,29 +44,35 @@ router.get("/api/public-lists", async (req, res) => {
     }
 });
 
-router.post("/api/public-lists", authenticate, async (req, res) => {
-    try {
-        let list = new PublicLists({
-            ...req.body,
-            author: req.user._id,
-        });
-        await list.save();
-
-        list = await PublicLists.findById(list._id)
-            .populate({
-                path: "tags",
-                select: "tag",
-            })
-            .populate({
-                path: "author",
-                select: "username",
+router.post(
+    "/api/public-lists",
+    authenticate,
+    createListValidationRules(),
+    validate,
+    async (req, res) => {
+        try {
+            let list = new PublicLists({
+                ...req.body,
+                author: req.user._id,
             });
-        return res.status(201).send(list.fullList());
-    } catch (err) {
-        console.log("Error occurred while creating a public lists", err);
-        res.status(500).send();
+            await list.save();
+
+            list = await PublicLists.findById(list._id)
+                .populate({
+                    path: "tags",
+                    select: "tag",
+                })
+                .populate({
+                    path: "author",
+                    select: "username",
+                });
+            return res.status(201).send(list.fullList());
+        } catch (err) {
+            console.log("Error occurred while creating a public lists", err);
+            res.status(500).send();
+        }
     }
-});
+);
 
 router.get("/api/public-lists/:id", async (req, res) => {
     try {
@@ -80,48 +95,61 @@ router.get("/api/public-lists/:id", async (req, res) => {
     }
 });
 
-router.patch("/api/public-lists/:id", authenticate, async (req, res) => {
-    const updates = Object.keys(req.body);
-    const allowedUpdates = ["name", "description", "items", "tags"];
-    const updateValid = updates.every((update) =>
-        allowedUpdates.includes(update)
-    );
-    if (!updateValid) {
-        return res.status(422).send();
-    }
-    try {
-        let list = await PublicLists.findOne({
-            _id: req.params.id,
-        });
-
-        if (!list) {
-            return res.status(404).send();
+router.patch(
+    "/api/public-lists/:id",
+    authenticate,
+    updateListValidationRules(),
+    validate,
+    async (req, res) => {
+        const updates = Object.keys(req.body);
+        const allowedUpdates = ["name", "description", "tags"];
+        const updateValid = updates.every((update) =>
+            allowedUpdates.includes(update)
+        );
+        if (!updateValid) {
+            return res.status(422).send({
+                success: false,
+                errors: [
+                    {
+                        general: "some updates are not allowed",
+                    },
+                ],
+            });
         }
+        try {
+            let list = await PublicLists.findOne({
+                _id: req.params.id,
+            });
 
-        if (list.author.toString() !== req.user._id) {
-            return res.status(401).send();
+            if (!list) {
+                return res.status(404).send();
+            }
+
+            if (list.author.toString() !== req.user._id) {
+                return res.status(401).send();
+            }
+
+            updates.forEach((update) => (list[update] = req.body[update]));
+            list = await list.save();
+
+            list = await list
+                .populate({
+                    path: "tags",
+                    select: "tag",
+                })
+                .populate({
+                    path: "author",
+                    select: "username",
+                })
+                .execPopulate();
+
+            return res.send(list.fullList());
+        } catch (err) {
+            console.log("Error occurred while updating the user", err);
+            res.status(500).send({ error: err.message });
         }
-
-        updates.forEach((update) => (list[update] = req.body[update]));
-        list = await list.save();
-
-        list = await list
-            .populate({
-                path: "tags",
-                select: "tag",
-            })
-            .populate({
-                path: "author",
-                select: "username",
-            })
-            .execPopulate();
-
-        return res.send(list.fullList());
-    } catch (err) {
-        console.log("Error occurred while updating the user", err);
-        res.status(500).send({ error: err.message });
     }
-});
+);
 
 router.get("/api/public-lists/:id/items", async (req, res) => {
     try {
@@ -140,24 +168,30 @@ router.get("/api/public-lists/:id/items", async (req, res) => {
     }
 });
 
-router.post("/api/public-lists/:id/items", authenticate, async (req, res) => {
-    try {
-        const list = await PublicLists.findById(req.params.id);
-        if (list === null) {
-            return res.status(404).send();
+router.post(
+    "/api/public-lists/:id/items",
+    authenticate,
+    listItemValidationRules(),
+    validate,
+    async (req, res) => {
+        try {
+            const list = await PublicLists.findById(req.params.id);
+            if (list === null) {
+                return res.status(404).send();
+            }
+            if (list.author.toString() !== req.user._id) {
+                return res.status(401).send();
+            }
+            const item = list.items.create({ ...req.body });
+            list.items.push(item);
+            await list.save();
+            return res.status(201).send(item);
+        } catch (err) {
+            console.log("Error occurred while adding a new item", err);
+            return res.status(500).send();
         }
-        if (list.author.toString() !== req.user._id) {
-            return res.status(401).send();
-        }
-        const item = list.items.create({ ...req.body });
-        list.items.push(item);
-        await list.save();
-        return res.status(201).send(item);
-    } catch (err) {
-        console.log("Error occurred while adding a new item", err);
-        return res.status(500).send();
     }
-});
+);
 
 router.get("/api/public-lists/:id/items/:itemId", async (req, res) => {
     try {
@@ -180,6 +214,8 @@ router.get("/api/public-lists/:id/items/:itemId", async (req, res) => {
 router.patch(
     "/api/public-lists/:id/items/:itemId",
     authenticate,
+    listItemUpdateValidationRules(),
+    validate,
     async (req, res) => {
         const updates = Object.keys(req.body);
         const allowedUpdates = ["name", "url", "icon_url"];
@@ -244,6 +280,8 @@ router.delete(
 router.post(
     "/api/public-lists/:id/comments",
     authenticate,
+    commentValidationRules(),
+    validate,
     async (req, res) => {
         try {
             const list = await PublicLists.findById(req.params.id);
