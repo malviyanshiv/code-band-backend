@@ -8,7 +8,10 @@ const authenticate = (req, res, next) => {
         next();
     } catch (err) {
         console.log("Error while verifying token in middleware", err);
-        res.status(401).send();
+        res.status(401).send({
+            success: false,
+            message: "user not authorized",
+        });
     }
 };
 

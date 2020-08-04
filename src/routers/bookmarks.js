@@ -19,15 +19,26 @@ router.get("/api/bookmarks/", authenticate, async (req, res) => {
         });
         const result = [];
         bookmarks.forEach((bookmark) => {
-            console.log(bookmark);
             const obj = bookmark.listID.toObject();
             obj.author.id = obj.id = undefined;
             result.push(obj);
         });
-        return res.send(result);
+        return res.send({
+            success: true,
+            message: "data found",
+            data: {
+                bookmarks: result,
+            },
+        });
     } catch (err) {
         console.log("Error while reading bookmarks", err);
-        return res.status(500).send();
+        return res.status(500).send({
+            success: false,
+            message: "server error occurred",
+            error: {
+                general: err.message,
+            },
+        });
     }
 });
 

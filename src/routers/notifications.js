@@ -29,10 +29,22 @@ router.get("/api/notifications", authenticate, async (req, res) => {
             .limit(limit)
             .skip(skip)
             .exec();
-        return res.send(notifications);
+        return res.send({
+            success: true,
+            message: "data found",
+            data: {
+                notifications,
+            },
+        });
     } catch (err) {
         console.log("Error occurred while reading notifications", err);
-        return res.status(500).send();
+        return res.status(500).send({
+            success: false,
+            message: "server error occurred",
+            error: {
+                general: err.message,
+            },
+        });
     }
 });
 
@@ -40,19 +52,37 @@ router.get("/api/notifications/:id", authenticate, async (req, res) => {
     try {
         const notification = await Notifications.findById(req.params.id);
         if (notification === null) {
-            return res.status(404).send();
+            return res.status(404).send({
+                success: false,
+                message: "notification not found",
+            });
         }
         if (notification.owner.toString() !== req.user._id) {
-            return res.status(401).send();
+            return res.status(401).send({
+                success: false,
+                message: "user not authorized",
+            });
         }
 
-        return res.send(notification);
+        return res.send({
+            success: true,
+            message: "data found",
+            data: {
+                notification,
+            },
+        });
     } catch (err) {
         console.log(
             "Error occurred while reading a specific notification",
             err
         );
-        return res.status(500).send();
+        return res.status(500).send({
+            success: false,
+            message: "server error occurred",
+            error: {
+                general: err.message,
+            },
+        });
     }
 });
 

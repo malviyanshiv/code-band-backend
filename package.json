@@ -4,14 +4,14 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "jest",
+        "test": "jest --coverage",
+        "test-dev": "nodemon --exec env-cmd -f ./config/test.env jest --watch --detechOpenHandles",
         "start": "node ./dist/index.js",
         "dev": "nodemon --exec env-cmd -f ./config/dev.env npx babel-node src/index.js",
         "build": "babel src -d dist"
     },
     "jest": {
-        "testEnvironment": "node",
-        "collectCoverage": true
+        "testEnvironment": "node"
     },
     "keywords": [],
     "author": "",
@@ -20,6 +20,7 @@
         "@sendgrid/mail": "^7.2.1",
         "bcryptjs": "^2.4.3",
         "express": "^4.17.1",
+        "express-validator": "^6.6.0",
         "jest": "^26.2.2",
         "jsonwebtoken": "^8.5.1",
         "mongodb": "^3.5.9",
@@ -36,6 +37,7 @@
         "codecov": "^3.7.2",
         "env-cmd": "^10.1.0",
         "nodemon": "^2.0.4",
-        "npx": "^10.2.2"
+        "npx": "^10.2.2",
+        "supertest": "^4.0.2"
     }
 }
