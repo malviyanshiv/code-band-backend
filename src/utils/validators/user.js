@@ -10,7 +10,6 @@ const checkEmailExistence = async (value) => {
 
 const checkUsernameExistence = async (value) => {
     const user = await Users.findOne({ username: value });
-    console.log(user);
     if (user !== null) {
         return Promise.reject();
     }
